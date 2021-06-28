@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  api_server:
+    build: 
+      context: player-participant-management-service
+      dockerfile: Dockerfile
+    image: api_server:latest
+    restart: always   
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo_db
+    environment:
+        MONGO_DB_HOST: mongo_db
+        MONGO_DB_PORT: 27017
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - backend
+      - frontend
+
+  mongo_db:
+    image: "mongo:4.4.3"
+    restart: always
+    ports:
+      - 27017:27017
+    networks:
+      - backend 
+
+  api_client:
+    build: 
+      context: rbat-ppms-fe
+      dockerfile: Dockerfile
+      args:
+         REACT_APP_API_BASE_URL: http://localhost:8080/player-participant-management/v1
+    image: api_client:latest
+    restart: always   
+    ports:
+      - 3000:3000
+    depends_on:
+      - api_server
+    networks:
+      - frontend 
+
+# Networks to be created to facilitate communication between containers
+networks:
+  backend:
+  frontend:
